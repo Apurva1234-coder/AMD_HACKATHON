@@ -1,0 +1,16 @@
+{
+  "name": "websss---copy---copy",
+  "version": "1.0.0",
+  "description": "A **real-time location-based system** where:\r -  Users mark \"Green Spots\" (safe zones) using their **actual GPS coordinates**\r -  **ALL users** can see spots marked by everyone\r -  Spots are saved permanently in the browser (IndexedDB)\r -  Works offline after first load\r -  Shows distance from your location to each spot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

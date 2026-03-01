@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page - Is it Working?</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        .box {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 { color: #667eea; }
+        button {
+            background: #51cf66;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover { background: #40c057; }
+        #status { 
+            padding: 20px; 
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>✅ SERVER IS WORKING!</h1>
+        <p>If you can see this page, the server is running correctly.</p>
+        
+        <div id="status">
+            <strong>Status:</strong> <span id="status-text">Ready</span>
+        </div>
+        
+        <button onclick="testLocation()">📍 Test GPS Location</button>
+        <button onclick="goToMainApp()">🗺️ Go to Green Spot Mapper</button>
+        
+        <div id="result" style="margin-top: 20px;"></div>
+    </div>
+    
+    <script>
+        document.getElementById('status-text').textContent = 'Page loaded successfully! ✅';
+        
+        function testLocation() {
+            document.getElementById('result').innerHTML = '<p>🔄 Getting your location...</p>';
+            
+            if (!navigator.geolocation) {
+                document.getElementById('result').innerHTML = '<p style="color: red;">❌ Geolocation not supported</p>';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById('result').innerHTML = `
+                        <p style="color: green;"><strong>✅ GPS Works!</strong></p>
+                        <p><strong>Latitude:</strong> ${lat}</p>
+                        <p><strong>Longitude:</strong> ${lng}</p>
+                        <p>Now you can use the Green Spot Mapper!</p>
+                    `;
+                },
+                (error) => {
+                    let msg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            msg = '❌ You denied location access. Please click "Allow" when asked.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            msg = '❌ Location unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            msg = '⏱️ Request timeout';
+                            break;
+                    }
+                    document.getElementById('result').innerHTML = `<p style="color: red;">${msg}</p>`;
+                }
+            );
+        }
+        
+        function goToMainApp() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisis Mapping - Emergency Response System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-online {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-offline {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .main-form {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .category-emergency {
+            background: #e74c3c;
+            color: white;
+            border-left: 5px solid #c0392b;
+        }
+
+        .category-medical {
+            background: #f39c12;
+            color: white;
+            border-left: 5px solid #e67e22;
+        }
+
+        .category-resource {
+            background: #9b59b6;
+            color: white;
+            border-left: 5px solid #8e44ad;
+        }
+
+        .category-safe {
+            background: #27ae60;
+            color: white;
+            border-left: 5px solid #229954;
+        }
+
+        .category-general {
+            background: #34495e;
+            color: white;
+            border-left: 5px solid #2c3e50;
+        }
+
+        .category-error {
+            background: #95a5a6;
+            color: white;
+            border-left: 5px solid #7f8c8d;
+        }
+
+        .result-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-actions {
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .example-btn {
+            background: #ecf0f1;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #d5dbdb;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Crisis Mapping System</h1>
+            <p>AI-Powered Emergency Response & Resource Coordination</p>
+            <span id="api-status" class="status-badge status-offline">Checking API...</span>
+        </div>
+
+        <div class="main-form">
+            <form id="crisis-form">
+                <div class="form-group">
+                    <label for="crisis-message">📢 Submit Crisis Report</label>
+                    <textarea 
+                        id="crisis-message" 
+                        name="message" 
+                        placeholder="Describe the situation clearly... (e.g., 'Building collapsed on 5th street, people trapped', 'Need medical supplies for injured', 'Safe evacuation complete')" 
+                        required 
+                        maxlength="500"
+                    ></textarea>
+                    <small style="color: #7f8c8d;">Characters remaining: <span id="char-count">500</span></small>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    🚑 Classify & Submit Emergency Report
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing with Gemini AI...</p>
+            </div>
+
+            <div id="result-container" class="result-container">
+                <div class="result-header" id="result-header"></div>
+                <div id="result-message"></div>
+                <div class="result-actions" id="result-actions"></div>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Quick Test Examples</h3>
+            <p>Click any example to test the AI classification:</p>
+            <button class="example-btn" onclick="fillExample('Building collapsed on main street, people trapped inside!')">Emergency</button>
+            <button class="example-btn" onclick="fillExample('Need ambulance, someone is bleeding heavily')">Medical</button>
+            <button class="example-btn" onclick="fillExample('Looking for food and clean water supplies')">Resource</button>
+            <button class="example-btn" onclick="fillExample('All safe, evacuation completed successfully')">Safe</button>
+            <button class="example-btn" onclick="fillExample('What is the weather forecast for tomorrow?')">General</button>
+        </div>
+
+        <div id="stats" class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="total-reports">0</div>
+                <div class="stat-label">Total Reports</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="emergency-count">0</div>
+                <div class="stat-label">Emergency</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="medical-count">0</div>
+                <div class="stat-label">Medical</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="resource-count">0</div>
+                <div class="stat-label">Resource</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="safe-count">0</div>
+                <div class="stat-label">Safe</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+        let stats = {
+            total: 0,
+            Emergency: 0,
+            Medical: 0,
+            Resource: 0,
+            Safe: 0,
+            General: 0
+        };
+
+        // Check API status on load
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    document.getElementById('api-status').className = 'status-badge status-online';
+                    document.getElementById('api-status').textContent = '✅ API Online';
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                document.getElementById('api-status').className = 'status-badge status-offline';
+                document.getElementById('api-status').textContent = '❌ API Offline';
+            }
+        }
+
+        // Character counter
+        document.getElementById('crisis-message').addEventListener('input', function() {
+            const remaining = 500 - this.value.length;
+            document.getElementById('char-count').textContent = remaining;
+        });
+
+        // Fill example text
+        function fillExample(text) {
+            document.getElementById('crisis-message').value = text;
+            const remaining = 500 - text.length;
+            document.getElementById('char-count').textContent = remaining;
+        }
+
+        // Classify crisis message
+        async function classifyCrisisMessage(message) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/classify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return { success: true, data };
+            } catch (error) {
+                console.error('Classification error:', error);
+                return { 
+                    success: false, 
+                    error: error.message,
+                    data: { category: 'General' }
+                };
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('crisis-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const message = document.getElementById('crisis-message').value.trim();
+            if (!message) {
+                alert('Please enter a crisis message');
+                return;
+            }
+
+            const submitButton = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('result-container');
+
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.textContent = 'Processing...';
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                // Classify the message
+                const result = await classifyCrisisMessage(message);
+                
+                if (result.success) {
+                    const category = result.data.category;
+                    displayResult(category, message, true);
+                    updateStats(category);
+                } else {
+                    displayResult('General', message, false, result.error);
+                    updateStats('General');
+                }
+            } catch (error) {
+                displayResult('General', message, false, 'Classification service error');
+                updateStats('General');
+            } finally {
+                // Reset UI
+                submitButton.disabled = false;
+                submitButton.textContent = '🚑 Classify & Submit Emergency Report';
+                loading.style.display = 'none';
+            }
+        });
+
+        // Display classification result
+        function displayResult(category, message, success = true, error = null) {
+            const container = document.getElementById('result-container');
+            const header = document.getElementById('result-header');
+            const messageDiv = document.getElementById('result-message');
+            const actions = document.getElementById('result-actions');
+
+            // Clear previous classes
+            container.className = 'result-container';
+            container.classList.add(`category-${category.toLowerCase()}`);
+            
+            const categoryIcons = {
+                'Emergency': '🚨',
+                'Medical': '🏥',
+                'Resource': '📦',
+                'Safe': '✅',
+                'General': '📝'
+            };
+
+            header.innerHTML = `${categoryIcons[category] || '📝'} Category: ${category}`;
+            
+            if (success) {
+                messageDiv.innerHTML = `
+                    <p><strong>Message:</strong> "${message}"</p>
+                    <p><strong>Classification:</strong> Successfully categorized as ${category}</p>
+                    ${error ? `<p><strong>Note:</strong> ${error}</p>` : ''}
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <p><strong>Message:</strong> "${message}"</p>
+                    <p><strong>Error:</strong> ${error}</p>
+                    <p><strong>Fallback:</strong> Classified as General</p>
+                `;
+            }
+
+            // Add category-specific actions
+            actions.innerHTML = getCategoryActions(category);
+            
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Get actions based on category
+        function getCategoryActions(category) {
+            const actionMap = {
+                'Emergency': `
+                    <button class="action-btn" onclick="alert('Emergency services notified!')">🚑 Alert Emergency Services</button>
+                    <button class="action-btn" onclick="alert('Evacuation plan activated!')">🏃 Activate Evacuation</button>
+                `,
+                'Medical': `
+                    <button class="action-btn" onclick="alert('Medical teams dispatched!')">🚑 Dispatch Medical Team</button>
+                    <button class="action-btn" onclick="alert('Medical supplies requested!')">🏥 Request Supplies</button>
+                `,
+                'Resource': `
+                    <button class="action-btn" onclick="alert('Aid organizations contacted!')">🎆 Contact Aid Groups</button>
+                    <button class="action-btn" onclick="alert('Resource distribution planned!')">📦 Plan Distribution</button>
+                `,
+                'Safe': `
+                    <button class="action-btn" onclick="alert('Safety confirmation logged!')">✅ Log Safety Status</button>
+                    <button class="action-btn" onclick="alert('Community updated!')">📢 Update Community</button>
+                `,
+                'General': `
+                    <button class="action-btn" onclick="alert('Information logged!')">📝 Log Information</button>
+                `
+            };
+            return actionMap[category] || actionMap['General'];
+        }
+
+        // Update statistics
+        function updateStats(category) {
+            stats.total++;
+            if (stats[category] !== undefined) {
+                stats[category]++;
+            }
+
+            document.getElementById('total-reports').textContent = stats.total;
+            document.getElementById('emergency-count').textContent = stats.Emergency;
+            document.getElementById('medical-count').textContent = stats.Medical;
+            document.getElementById('resource-count').textContent = stats.Resource;
+            document.getElementById('safe-count').textContent = stats.Safe;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAPIStatus();
+            console.log('Crisis Mapping System initialized ✅');
+        });
+    </script>
+</body>
+</html>

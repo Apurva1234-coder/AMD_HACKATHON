@@ -1,0 +1,14 @@
+node_modules/
+backend/node_modules/
+.env
+*.log
+.DS_Store
+dist/
+build/
+.cache/
+.vscode/
+.idea/
+*.tmp
+*.swp
+package-lock.json
+backend/package-lock.json

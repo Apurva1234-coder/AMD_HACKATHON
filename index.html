@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResilioNet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .map-section h2 {
+            color: #00ff88 !important;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px !important;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 8px;
+            border: 2px solid #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+            filter: contrast(1.1) saturate(1.2);
+        }
+
+        /* Chat Section - Emergency Response Dashboard */
+        .chat-container {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container h2 {
+            color: #00ff88 !important;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            margin-bottom: 15px !important;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid transparent;
+            background: #334155;
+            color: #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            animation: messageSlide 0.3s ease-in-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Priority-based message styling */
+        .message.priority-emergency {
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg, #450a0a 0%, #334155 100%);
+            animation: urgentPulse 2s infinite;
+        }
+
+        .message.priority-medical {
+            border-left-color: #ea580c;
+            background: linear-gradient(135deg, #431407 0%, #334155 100%);
+        }
+
+        .message.priority-resource {
+            border-left-color: #d97706;
+            background: linear-gradient(135deg, #451a03 0%, #334155 100%);
+        }
+
+        .message.priority-safe {
+            border-left-color: #16a34a;
+            background: linear-gradient(135deg, #052e16 0%, #334155 100%);
+        }
+
+        .message.priority-general {
+            border-left-color: #64748b;
+            background: #334155;
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { 
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(220, 38, 38, 0.4);
+            }
+            50% { 
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(220, 38, 38, 0.2);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .message-timestamp {
+            font-size: 10px;
+            color: #94a3b8;
+            font-family: 'Courier New', monospace;
+        }
+
+        .message-text {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #475569;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+
+        /* Priority Tags */
+        .priority-tag {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .priority-tag.priority-emergency {
+            background: #dc2626;
+            color: white;
+            border-color: #b91c1c;
+            animation: criticalBlink 1.5s infinite;
+        }
+
+        @keyframes criticalBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* AI Badge and Human Badge */
+        .ai-badge, .human-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .ai-badge {
+            background: #22c55e;
+            color: #052e16;
+        }
+
+        .human-badge {
+            background: #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .confidence {
+            font-size: 9px;
+            color: #94a3b8;
+            margin-left: 8px;
+        }
+
+        /* Priority Override Controls */
+        .priority-override-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .priority-override-select {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .priority-override-select:hover {
+            border-color: #64748b;
+            background: #334155;
+        }
+
+        .message.sent {
+            background: linear-gradient(135deg, #1e40af 0%, #334155 100%);
+            border-left-color: #2563eb;
+        }
+
+        .message.received {
+            background: #334155;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+        }
+
+        .chat-input input::placeholder {
+            color: #64748b;
+        }
+
+        .chat-input button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .chat-input button:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(185, 28, 28, 0.4);
+        }
+
+        /* SOS Section */
+        .sos-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .sos-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%);
+            color: white;
+            border: 8px solid white;
+            box-shadow: 0 8px 16px rgba(201, 42, 42, 0.4);
+            font-size: 48px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 30px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sos-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 24px rgba(201, 42, 42, 0.6);
+        }
+
+        .sos-button:active {
+            transform: scale(0.95);
+        }
+
+        .sos-alerts {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .sos-alert {
+            padding: 15px;
+            background: #fff3bf;
+            border-left: 4px solid #ff6b6b;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        /* Green Spot Form */
+        .spot-form {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .location-preview {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        /* Crisis Filter Panel */
+        .crisis-filter-panel {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .crisis-filter-panel h3 {
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .crisis-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        .crisis-filter {
+            padding: 8px 12px;
+            border: 2px solid #444;
+            border-radius: 6px;
+            background: #2a2a2a;
+            color: #ccc;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .crisis-filter:hover {
+            background: #3a3a3a;
+            transform: translateY(-1px);
+        }
+
+        .crisis-filter.active {
+            border-color: var(--filter-color);
+            background: var(--filter-color);
+            color: white;
+            box-shadow: 0 0 10px rgba(var(--filter-rgb), 0.5);
+        }
+
+        .crisis-filter.high-risk {
+            --filter-color: #dc2626;
+            --filter-rgb: 220, 38, 38;
+        }
+
+        .crisis-filter.resource-shortage {
+            --filter-color: #d97706;
+            --filter-rgb: 217, 119, 6;
+        }
+
+        .crisis-filter.safe-cluster {
+            --filter-color: #16a34a;
+            --filter-rgb: 22, 163, 74;
+        }
+
+        .crisis-filter.comm-node {
+            --filter-color: #2563eb;
+            --filter-rgb: 37, 99, 235;
+        }
+
+        .crisis-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Crisis Actions (Reset Button) */
+        .crisis-actions {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #333;
+        }
+
+        .crisis-reset-btn {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e11d48;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #fca5a5;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .crisis-reset-btn:hover {
+            background: #e11d48;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+        }
+
+        .crisis-reset-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(225, 29, 72, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .tab-btn {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .crisis-filters {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .message-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .message-sender {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            
+            .message-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .priority-tag {
+                font-size: 10px;
+                padding: 2px 6px;
+            }
+            
+            .chat-input {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .chat-input button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>
+                <span>📱</span>
+                <span>ResilioNet</span>
+            </h1>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('map', this)">
+                🗺️ Green Spots
+            </button>
+            <button class="tab-btn" onclick="switchTab('chat', this)">
+                � Emergency Comms
+            </button>
+            <button class="tab-btn" onclick="switchTab('sos', this)">
+                🚨 SOS Alerts
+            </button>
+        </div>
+
+        <!-- Map Tab -->
+        <div id="map-tab" class="tab-content active">
+            <div class="map-section">
+                <h2 style="color: #667eea; margin-bottom: 15px;">🌍 Crisis Intelligence Dashboard</h2>
+                
+                <!-- Location Status Bar -->
+                <div style="background: #1e293b; padding: 10px; border-radius: 6px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #475569;">
+                    <div id="map-location-status" style="color: #94a3b8; font-size: 14px; font-family: 'Courier New', monospace;">
+                        📡 Location Status: Initializing...
+                    </div>
+                    <button onclick="centerMapOnUser()" 
+                            style="padding: 6px 10px; background: #059669; color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer;"
+                            title="Center map on your location">
+                        🎯 Go To My Location
+                    </button>
+                </div>
+                
+                <!-- Crisis Filter Panel -->
+                <div class="crisis-filter-panel">
+                    <h3>🎯 Crisis Status Layer Controls</h3>
+                    <div class="crisis-filters">
+                        <button class="crisis-filter high-risk active" data-type="high-risk" onclick="toggleCrisisFilter('high-risk')">
+                            🔴 High-Risk Zones
+                        </button>
+                        <button class="crisis-filter resource-shortage active" data-type="resource-shortage" onclick="toggleCrisisFilter('resource-shortage')">
+                            🟡 Resource Shortage
+                        </button>
+                        <button class="crisis-filter safe-cluster active" data-type="safe-cluster" onclick="toggleCrisisFilter('safe-cluster')">
+                            🟢 Safe Clusters
+                        </button>
+                        <button class="crisis-filter comm-node active" data-type="comm-node" onclick="toggleCrisisFilter('comm-node')">
+                            🔵 Communication Nodes
+                        </button>
+                    </div>
+                    <div class="crisis-stats">
+                        <span id="crisis-zone-count">Analyzing zones...</span>
+                        <span id="last-analysis-time">Last updated: Never</span>
+                    </div>
+                    <div class="crisis-actions">
+                        <button class="crisis-reset-btn" onclick="resetCrisisMap()" title="Reset all crisis overlays and map view">
+                            🔄 Reset Map
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="map"></div>
+            </div>
+
+            <div class="spot-form">
+                <h2 style="color: #667eea; margin-bottom: 15px;">➕ Mark New Green Spot</h2>
+                <form id="spot-form">
+                    <div class="form-group">
+                        <label>📝 Spot Name/Description</label>
+                        <input type="text" id="spot-description" placeholder="e.g., Community Center" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏷️ Category</label>
+                        <select id="spot-category" required>
+                            <option value="safe-zone">🛡️ Safe Zone</option>
+                            <option value="medical">🏥 Medical Facility</option>
+                            <option value="food">🍽️ Food/Water</option>
+                            <option value="shelter">🏠 Shelter</option>
+                            <option value="communication">📡 Communication Hub</option>
+                            <option value="meeting">🤝 Meeting Point</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📋 Additional Notes (Optional)</label>
+                        <textarea id="spot-notes" placeholder="e.g., Open 24/7, Has generator"></textarea>
+                    </div>
+
+                    <div class="location-preview" id="spot-location-preview">
+                        📍 Waiting for GPS location...
+                    </div>
+
+                    <div class="location-controls" style="margin: 10px 0; display: flex; gap: 10px; align-items: center;">
+                        <button type="button" onclick="refreshLocation()" 
+                                style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;"
+                                title="Refresh your current location">
+                            🔄 Refresh Location
+                        </button>
+                        <button type="button" onclick="centerMapOnUser()" 
+                                style="padding: 8px 12px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer;"
+                                title="Center map on your location">
+                            🎯 Center Map
+                        </button>
+                    </div>
+
+                    <div class="manual-location-section" style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <h3 style="color: #667eea; margin-bottom: 10px; font-size: 16px;">🗺️ Manual Location Input</h3>
+                        <p style="color: #666; margin-bottom: 15px; font-size: 14px;">Enter a specific location instead of using your current GPS position</p>
+                        
+                        <div class="form-group">
+                            <label style="font-size: 14px; color: #495057;">🔍 Search Address or Place</label>
+                            <input type="text" id="manual-address" placeholder="e.g., Pimpri Chinchwad, Maharashtra" 
+                                   style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;">
+                        </div>
+                        
+                        <div class="coord-inputs" style="display: flex; gap: 10px; margin-top: 10px;">
+                            <input type="number" id="manual-lat" placeholder="Latitude" step="any" 
+                                   style="flex: 1; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; font-size: 13px;">
+                            <input type="number" id="manual-lng" placeholder="Longitude" step="any" 
+                                   style="flex: 1; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; font-size: 13px;">
+                        </div>
+                        
+                        <div class="manual-location-controls" style="margin-top: 12px; display: flex; gap: 10px;">
+                            <button type="button" onclick="geocodeAddress()" 
+                                    style="padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                                🔍 Search & Preview
+                            </button>
+                            <button type="button" onclick="clearManualLocation()" 
+                                    style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                                ✖️ Clear
+                            </button>
+                        </div>
+                        
+                        <div id="manual-location-preview" class="manual-preview" 
+                             style="margin-top: 10px; padding: 8px; background: #e3f2fd; border-radius: 6px; font-size: 13px; color: #1976d2; display: none;">
+                            📍 Manual location preview will appear here
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        📍 Mark Spot at Location
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat-tab" class="tab-content">
+            <div class="chat-container">
+                <h2 style="color: #00ff88; margin-bottom: 15px;">🚨 Emergency Response Communications</h2>
+                <div class="priority-legend" style="margin-bottom: 15px; padding: 10px; background: #1e293b; border: 1px solid #475569; border-radius: 6px; font-size: 12px; color: #94a3b8;">
+                    <strong style="color: #e2e8f0;">Trained Model Priority Classification:</strong>
+                    🔴 Emergency • 🟠 Medical • 🟡 Resource Request • 🟢 Safe Status • ⚪ General Info
+                </div>
+                <div class="messages" id="messages-container">
+                    <p style="text-align: center; color: #64748b; padding: 20px; font-family: 'Courier New', monospace;">
+                        Emergency Response Channel Initialized<br>
+                        Trained Model Priority Classification: ACTIVE<br>
+                        Ready for communications...
+                    </p>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="message-input" placeholder="Type emergency message... (trained model will auto-classify priority)" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()">🚨 TRANSMIT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOS Tab -->
+        <div id="sos-tab" class="tab-content">
+            <div class="sos-container">
+                <h2 style="color: #ff6b6b; margin-bottom: 15px;">🚨 Emergency SOS</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    Press the button below to send an emergency SOS alert with your location to all users.
+                </p>
+                
+                <button class="sos-button" onclick="sendSOS()">
+                    SOS
+                </button>
+
+                <p style="color: #999; font-size: 14px;">
+                    Your current location will be broadcast to all users in the network.
+                </p>
+
+                <div class="sos-alerts" id="sos-alerts-container">
+                    <h3 style="color: #667eea; margin: 20px 0;">Recent SOS Alerts</h3>
+                    <p style="text-align: center; color: #999; padding: 20px;">
+                        No SOS alerts yet.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
