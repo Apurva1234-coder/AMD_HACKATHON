@@ -272,15 +272,15 @@ Works great on mobile devices!
 | Add Spot | Fill form → Click "Add Green Spot" |
 | View Spot | Click in list or map marker |
 | Filter | Click category buttons |
-| Find Me | Click "📍 Find My Location" |
-| Refresh | Click "🔄 Refresh Spots" |
+| Find Me | Click "Find My Location" |
+| Refresh | Click " Refresh Spots" |
 | Change Name | Edit in "User Profile" → Save |
 
 ---
 
-## 🚀 Now Running At:
+##  Now Running At:
 
-**http://localhost:8000**
+**charming-melomakarona-274bff.netlify.app**
 
 1. **Allow location access** when prompted
 2. **Wait for GPS lock** (10-30 seconds)
